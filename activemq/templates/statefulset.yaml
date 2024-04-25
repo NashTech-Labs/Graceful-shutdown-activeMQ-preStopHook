@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-activemq
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  serviceName: {{ .Release.Name }}-activemq
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+      - name: {{ .Values.containerName }}
+        imagePullPolicy: {{ default "IfNotPresent" .Values.imagePullPolicy }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        {{- if .Values.gracefulShutdown.enabled }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/bash", "-c", "{{ .Values.gracefulShutdown.preStopCommand }}"]
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.containerPorts.tcp }}
+          name: tcp
+        - containerPort: {{ .Values.containerPorts.web }}
+          name: web
+        volumeMounts:
+        - name: {{ .Values.volumeName }}
+          mountPath: {{ .Values.volumeMountPath }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.volumeName }}
+    spec:
+      accessModes: [{{ .Values.accessMode }}]
+      resources:
+        requests:
+          storage: {{ .Values.storageSize }}
+

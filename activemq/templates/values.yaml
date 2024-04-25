@@ -1,0 +1,18 @@
+appName: activemq
+replicaCount: 3
+image:
+  repository: activemq
+  tag: 5.18.1
+containerName: activemq
+imagePullPolicy: IfNotPresent
+containerPorts:
+  tcp: 61616
+  web: 8161
+volumeName: data
+volumeMountPath: /data
+accessMode: ReadWriteOnce
+storageSize: 10Gi
+gracefulShutdown:
+  enabled: true
+  preStopCommand: "activemq stop"
+
